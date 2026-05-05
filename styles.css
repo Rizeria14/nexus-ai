@@ -1,0 +1,42 @@
+body {
+    background: #0f172a;
+    color: white;
+    font-family: Arial;
+}
+
+.app {
+    width: 700px;
+    margin: auto;
+}
+
+.controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.chat {
+    height: 400px;
+    background: black;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+.user {
+    text-align: right;
+    background: blue;
+    padding: 5px;
+    margin: 5px;
+}
+
+.bot {
+    text-align: left;
+    background: gray;
+    padding: 5px;
+    margin: 5px;
+}
+
+.input {
+    display: flex;
+    gap: 10px;
+}

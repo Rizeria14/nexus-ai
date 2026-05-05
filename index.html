@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Nexus AI</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="app">
+
+<h1>Nexus AI</h1>
+
+<div class="controls">
+    <input type="file" id="file">
+    <button onclick="upload()">Upload</button>
+
+    <select id="docs"></select>
+
+    <select id="mode">
+        <option value="single">Single</option>
+        <option value="multi">All Docs</option>
+    </select>
+
+    <select id="chats"></select>
+    <button onclick="newChat()">New Chat</button>
+</div>
+
+<div id="chatBox" class="chat"></div>
+
+<div class="input">
+    <input id="q" placeholder="Ask...">
+    <button onclick="ask()">Send</button>
+</div>
+
+</div>
+
+<script>
+
+let doc = "";
+let chat = "";
+
+// =======================
+// LOAD DOCUMENTS
+// =======================
+async function loadDocs() {
+    let res = await fetch("http://127.0.0.1:8000/documents");
+    let data = await res.json();
+
+    let d = document.getElementById("docs");
+    d.innerHTML = "";
+
+    data.documents.forEach(x => {
+        let o = document.createElement("option");
+        o.value = x;
+        o.textContent = x;
+        d.appendChild(o);
+    });
+
+    doc = d.value;
+}
+
+// =======================
+// LOAD CHATS
+// =======================
+async function loadChats() {
+    let res = await fetch("http://127.0.0.1:8000/chats");
+    let data = await res.json();
+
+    let c = document.getElementById("chats");
+    c.innerHTML = "";
+
+    data.chats.forEach(x => {
+        let o = document.createElement("option");
+        o.value = x;
+        o.textContent = x;
+        c.appendChild(o);
+    });
+
+    chat = c.value;
+
+    // 🔥 LOAD selected chat messages
+    if (chat) loadChatMessages(chat);
+}
+
+// =======================
+// LOAD CHAT MESSAGES
+// =======================
+async function loadChatMessages(chatId) {
+    let res = await fetch(`http://127.0.0.1:8000/chat?chat_id=${chatId}`);
+    let data = await res.json();
+
+    let box = document.getElementById("chatBox");
+    box.innerHTML = ""; // 🔥 CLEAR UI
+
+    data.messages.forEach(m => {
+        let div = document.createElement("div");
+        div.className = m.role === "user" ? "user" : "bot";
+        div.innerText = m.content;
+        box.appendChild(div);
+    });
+}
+
+// =======================
+// SWITCH CHAT
+// =======================
+document.getElementById("chats").addEventListener("change", function() {
+    chat = this.value;
+    loadChatMessages(chat);
+});
+
+// =======================
+// UPLOAD
+// =======================
+async function upload() {
+    let f = document.getElementById("file").files[0];
+    let fd = new FormData();
+    fd.append("file", f);
+
+    let res = await fetch("http://127.0.0.1:8000/upload", {
+        method: "POST",
+        body: fd
+    });
+
+    let data = await res.json();
+    doc = data.doc_id;
+
+    loadDocs();
+}
+
+// =======================
+// NEW CHAT
+// =======================
+async function newChat() {
+    let res = await fetch(`http://127.0.0.1:8000/chat?doc_id=${doc}`, {
+        method: "POST"
+    });
+
+    let data = await res.json();
+
+    chat = data.chat_id + ".json";
+
+    // 🔥 CLEAR UI immediately
+    document.getElementById("chatBox").innerHTML = "";
+
+    loadChats();
+}
+
+// =======================
+// ASK
+// =======================
+async function ask() {
+    let q = document.getElementById("q").value;
+    let mode = document.getElementById("mode").value;
+
+    let box = document.getElementById("chatBox");
+
+    // user msg
+    let u = document.createElement("div");
+    u.className = "user";
+    u.innerText = q;
+    box.appendChild(u);
+
+    document.getElementById("q").value = "";
+
+    let res = await fetch(
+        `http://127.0.0.1:8000/ask?query=${q}&doc_id=${doc}&mode=${mode}&chat_id=${chat}`
+    );
+
+    let data = await res.json();
+
+    let b = document.createElement("div");
+    b.className = "bot";
+    b.innerText = data.answer;
+    box.appendChild(b);
+
+    box.scrollTop = box.scrollHeight;
+}
+
+// =======================
+// INIT
+// =======================
+loadDocs();
+loadChats();
+
+</script>
+
+</body>
+</html>
