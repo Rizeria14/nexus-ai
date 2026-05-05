@@ -23,9 +23,7 @@ os.makedirs(DATA_DIR, exist_ok=True)
 os.makedirs(CHAT_DIR, exist_ok=True)
 
 
-# =====================
-# HELPERS
-# =====================
+
 
 def sanitize(name):
     return name.replace(".pdf", "").replace(" ", "_")
@@ -38,9 +36,6 @@ def get_store(doc_id):
     return store
 
 
-# =====================
-# DOCUMENT APIs
-# =====================
 
 @app.get("/documents")
 def list_docs():
@@ -88,9 +83,6 @@ def rename_doc(old_id: str, new_id: str):
     return {"message": "renamed"}
 
 
-# =====================
-# CHAT APIs
-# =====================
 
 @app.post("/chat")
 def create_chat(doc_id: str):
@@ -118,10 +110,6 @@ def load_chat(chat_id: str):
     with open(f"{CHAT_DIR}/{chat_id}") as f:
         return json.load(f)
 
-
-# =====================
-# ASK (CORE)
-# =====================
 
 @app.get("/ask")
 def ask(query: str, doc_id: str = "", mode: str = "single", chat_id: str = ""):
